@@ -1,0 +1,11 @@
+<hr>
+<div id="install-binaries-from-bioconductor" class="section level2">
+<h2><strong>Install binaries from Bioconductor</strong></h2>
+<p>Binary installation is available through <a href="https://bioconductor.org/">the Bioconductor package repository</a>. Binary installation of the current release version (1.8) requires R 3.5.0 and Bioconductor version 3.7:</p>
+<pre class="s"><code class="hljs">## try http:// if https:// URLs are not supported
+source("https://bioconductor.org/biocLite.R")
+biocLite("dada2")</code></pre>
+<p>Allow installation of any additional packages requested. You are ready to start using dada2!</p>
+<p><em>If the above installed an early version of dada2 (e.g.&nbsp;1.4 or 1.6) you can get the current dada2 release by updating to <a href="https://bioconductor.org/news/bioc_3_7_release/">Bioconductor 3.7</a>: <code>biocLite("BiocUpgrade")</code> then <code>biocLite()</code>. This may require updating R as well.</em></p>
+<hr>
+</div>
