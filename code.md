@@ -1,11 +1,11 @@
-Charger les librairies R utilisees dans ce workshop
+Charger les librairies R utiliseés dans ce workshop
 ```
 library(dada2)
 library(phyloseq)
 library(ggplot2)
 ```
 
-Changer _YourPath_ par le chemin du dossier dada2_Analysis sur votre ordinateur
+Changer _YourPath_ par l'emplacement du dossier dada2_Analysis sur votre ordinateur
 ```
 #MAC
 output_directory = "YourPath/dada2_Analysis"
@@ -21,23 +21,27 @@ designFile_path = sprintf("%s\\Metadata/design.tsv",output_directory)
 ```
 
 
-#Detect how many reads are in the rawReadsFolder
+Détecter les fichiers contenant les séquences ADN
+```
 readFiles <- list.files(rawReadsFolder, pattern = "_R[12].fastq$", full.names = TRUE, recursive = TRUE)
 length(readFiles)
 #Record the sample names
 sample.names <- unique(sapply(strsplit(basename(readFiles), "_R[12].fastq"), `[`, 1))
 sample.names
+```
 
-# Forward and reverse fastq filenames have the following format: SampleName.pair[12].fastq
+
+Differencier les séquences _Forward_ des séquences _Reverse_
+```
 fnFs <- sort(list.files(rawReadsFolder, pattern = "_R1.fastq$", full.names = TRUE, recursive = TRUE))
 fnRs <- sort(list.files(rawReadsFolder, pattern = "_R2.fastq$", full.names = TRUE, recursive = TRUE))
 length(fnFs)
 length(fnRs)
+```
 
-
-#Examine quality profiles graphs of forward and reverse reads
-#1. Create a qulaity profile folder
-subDir = sprintf("qualityProfilesRawReads")
+## Profils de qualité
+Examiner les profils de qualité de chacune des séquences _Forward_
+```
 dir.create(file.path(output_directory, subDir), showWarnings=FALSE)
 savefolder = paste(output_directory, "/qualityProfilesRawReads", sep="")
 #2. create the quality profile
@@ -52,7 +56,9 @@ for (i in fnFs) {
     dev.off()
   }
 }
-cat("\nReverse reads\n")
+```
+Meme chose pour les séquences _Reverse_
+```
 for (i in fnRs) {
   j <- sapply(strsplit(i, sprintf("%s/",rawReadsFolder)), `[`, -1)
   destfile=sprintf("%s/qualityProfile_%s.pdf",savefolder,j)
@@ -63,22 +69,28 @@ for (i in fnRs) {
     dev.off()
   }
 }
-cat("\n-----\ndone! Check pdf files in: ", savefolder,"\n", sep = "")
+```
 
 
 
-
-#FILTERING STEP (remove low quality reads)
-#1. create a folder for the filtered reads
+## Filtrer les séquences de mauvaise qualité
+  - Créer un dossier ou iront les sequences filtrees
+  ```
 filt_path <- file.path(output_directory, "Filtered_reads")
 if(!file_test("-d", filt_path)) dir.create(filt_path)
-#2. create names for the filtered reads
+```
+  - Donner de nouveaux noms aux séquences filtrees
+  ```
 filtFs <- file.path(filt_path, paste0(sample.names, "_F_filt.fastq"))
 filtRs <- file.path(filt_path, paste0(sample.names, "_R_filt.fastq"))
-#Apply the filter
-Fwd_trim=240 #from quality profiles observation + expected amplicon length
-Rev_trim=220 #from quality profiles observation + expected amplicon length
-
+```
+  - D'apres les observations des profils de qualite crees ci-dessus et en tenant compte de la longueur attendue des amplicons, donner des valeurs de coupe pour les sequences _Forward_ et _Reverse_
+  ```
+Fwd_trim=240
+Rev_trim=220
+```
+  - Appliquer le filtre
+  ```
 #MAC/LINUX
 out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs,
                      truncLen=c(Fwd_trim,Rev_trim),
@@ -87,23 +99,32 @@ out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs,
 out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs,
                      truncLen=c(Fwd_trim,Rev_trim),
                      maxN=0, compress=FALSE, multithread=FALSE) 
+```
 
-#ERROR RATE LEARNING: PARAMETRIC ERROR MODEL AUTO-CORRECTION (MACHINE LEARNING)
-#Error rates are learned by alternating between sample inference and error rate estimation until convergence
-#1. Create a folder
+## Machine Learning: auto-correction des sequences d'apresun modele parametrique
+1. Creer un fichier pour le graphique genere ci-dessous
+```
 errorLearning_path <- file.path(output_directory, "Error_Rate_Learning")
 if(!file_test("-d", errorLearning_path)) dir.create(errorLearning_path)
-#2. Apply the statistical model
+```
+2. Lancer le modele statistique
+```
+#### MAC:
 errF <- learnErrors(filtFs, multithread = TRUE)
 errR <- learnErrors(filtRs, multithread = TRUE)
-#3. Create error rates graphs
+WINDOWS:
+errF <- learnErrors(filtFs, multithread = FALSE)
+errR <- learnErrors(filtRs, multithread = FALSE)
+```
+3. Generer des graphiques de correction de sequence pour les sequence _Forward_ et _Reverse_
+```
 pdf(file=sprintf("%s/ErrorLearning_ForwardReads.pdf",errorLearning_path), width=10, height=7)
 print(plotErrors(errF, nominalQ=TRUE))
 dev.off()
 pdf(file=sprintf("%s/ErrorLearning_ReverseReads.pdf",errorLearning_path), width=10, height=7)
 print(plotErrors(errR, nominalQ=TRUE))
 dev.off()
-
+```
 
 
 cat("\n########################### DEREPLICATION #################################\n")
