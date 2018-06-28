@@ -10,7 +10,9 @@ Pour cette session, vous aurez besoin de:
 Pour installer les 3 libraries R
 1. Ouvrir RStudio
 2. Dans la console (partie en bas gauche), taper les commandes:
-```source("https://bioconductor.org/biocLite.R")
+```
+source("https://bioconductor.org/biocLite.R")
 biocLite("dada2")
-biocLite("phyloseq")
-biocLite("ggplot2")```
+biocLite('phyloseq')
+biocLite("ggplot2")
+```
