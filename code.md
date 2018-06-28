@@ -23,7 +23,7 @@ designFile_path = sprintf("%s\\Metadata/design.tsv",output_directory)
 
 
 ## CHARGEMENT DES SEQUENCES
-Détecter les fichiers contenant les séquences ADN
+  - Détecter les fichiers contenant les séquences ADN
 ```
 readFiles <- list.files(rawReadsFolder, pattern = "_R[12].fastq$", full.names = TRUE, recursive = TRUE)
 length(readFiles)
@@ -33,7 +33,7 @@ sample.names
 ```
 
 
-Differencier les séquences _Forward_ des séquences _Reverse_
+  - Differencier les séquences _Forward_ des séquences _Reverse_
 ```
 fnFs <- sort(list.files(rawReadsFolder, pattern = "_R1.fastq$", full.names = TRUE, recursive = TRUE))
 fnRs <- sort(list.files(rawReadsFolder, pattern = "_R2.fastq$", full.names = TRUE, recursive = TRUE))
@@ -42,7 +42,7 @@ length(fnRs)
 ```
 
 ## PROFILS DE QUALITE
-Examiner les profils de qualité de chacune des séquences _Forward_
+  - Examiner les profils de qualité de chacune des séquences _Forward_
 ```
 dir.create(file.path(output_directory, subDir), showWarnings=FALSE)
 savefolder = paste(output_directory, "/qualityProfilesRawReads", sep="")
@@ -59,7 +59,7 @@ for (i in fnFs) {
   }
 }
 ```
-Meme chose pour les séquences _Reverse_
+  - Meme chose pour les séquences _Reverse_
 ```
 for (i in fnRs) {
   j <- sapply(strsplit(i, sprintf("%s/",rawReadsFolder)), `[`, -1)
@@ -131,12 +131,12 @@ dev.off()
 
 
 ## DEREPLICATION
-La dereplication va grouper les sequences identiques pour allerger la charge de calcul
+  - La dereplication va grouper les sequences identiques pour allerger la charge de calcul
 ```
 derepFs <- derepFastq(filtFs, verbose=TRUE)
 derepRs <- derepFastq(filtRs, verbose=TRUE)
 ```
-Donner le nom des echantillons aux groupes de sequences derepliquees
+  - Donner le nom des echantillons aux groupes de sequences derepliquees
 ```
 names(derepFs) <- sample.names
 names(derepRs) <- sample.names
@@ -144,8 +144,8 @@ names(derepRs) <- sample.names
 
 
 
-# INFERENCE DES ECHANTILLONS
-Utiliser les resultat du modele parametrique precedent pour creer des sequences modifiees dans les echantillons  
+## INFERENCE DES ECHANTILLONS
+  - Utiliser les resultat du modele parametrique precedent pour creer des sequences modifiees dans les echantillons  
 ```
 #MAC/LINUX
 dadaFs <- dada(derepFs, err=errF, multithread=TRUE, pool=FALSE)
@@ -155,7 +155,7 @@ dadaRs <- dada(derepRs, err=errR, multithread=TRUE, pool=FALSE)
 dadaFs <- dada(derepFs, err=errF, multithread=FALSE, pool=FALSE)
 dadaRs <- dada(derepRs, err=errR, multithread=FALSE, pool=FALSE)
 ```
-Regarder combien de sequences ont ete creees dans chacun des echantillons
+  - Regarder combien de sequences ont ete creees dans chacun des echantillons
 ```
 dadaFs[[1]]
 dadaRs[[1]]
@@ -166,7 +166,7 @@ dadaRs[[1]]
  ```
 amplicons <- mergePairs(dadaFs, derepFs, dadaRs, derepRs, minOverlap=20, verbose=TRUE)
  ```
-  -  Contruire un tableau avec  les sequences des amplicons
+  - Contruire un tableau avec  les sequences des amplicons
  ```
 seqtab <- makeSequenceTable(amplicons)
  ```
@@ -192,14 +192,14 @@ seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=FALSE, verbose=TRUE)
 
 ```
-Afficher le pourcentage de sequences detectees comme chimeres
+  - Afficher le pourcentage de sequences detectees comme chimeres
 ```
 cat("\nFraction of chimeras:", (1-sum(seqtab.nochim)/sum(seqtab))*100,"% of the total sequence reads.\n")
 ```
 
 
 # DECOMPTE FINAL DES SEQUENCES
-- Creer un dossier sera creee le tableau de decompte des sequences
+  - Creer un dossier sera creee le tableau de decompte des sequences
 ```
 Summary_path <- file.path(output_directory, "Summary")
 if(!file_test("-d", Summary_path)) dir.create(Summary_path)
@@ -218,12 +218,12 @@ rownames(track) <- sample.names
 write.table(track ,file =sprintf("%s/SummaryTable.tsv",Summary_path), sep = "\t", quote = FALSE)
 ```
 
-# ASSIGNATION DE LA TAXONOMIE
+## ASSIGNATION DE LA TAXONOMIE
 ```
 taxa <- assignTaxonomy(seqtab.nochim, trainset_path)
 ```
 
-# TABLEAU DE COMPTE DES AMPLICONS ET TABLEAU D'IDENTIFICATION TAXONOMIQUE
+## TABLEAU DE COMPTE DES AMPLICONS ET TABLEAU D'IDENTIFICATION TAXONOMIQUE
 - Creer un dossier seront crees ces fichier
 ```
 dada2outputFiles_path <- file.path(output_directory, "outputFilesDada2")
@@ -267,7 +267,7 @@ ps <- phyloseq(OtuTable, TaxTable, sampleTable)
 ps
 ```
 
-# Diversite alpha (abondance des especes)
+## Diversite alpha (abondance des especes)
   - Rarefaction: pour comparer plusieurs echantillons ensemble
  ```
 psRar = rarefy_even_depth(ps, sample.size = min(sample_sums(ps)),verbose = TRUE)
@@ -292,7 +292,8 @@ dev.off()
 
 
 
-# Diversite alpha (Richesse spécifique)
+## Diversite Alpha (Richesse spécifique)
+```
 destfile=sprintf("%s/richness.pdf",graphs_path)
 pdf(file=destfile, width=12, height=12)
 plot_richness(ps, x = "Conditions", color = "Conditions", measures=c("Observed", "Chao1", "Shannon", "Simpson"), nrow=1) + 
@@ -300,10 +301,11 @@ plot_richness(ps, x = "Conditions", color = "Conditions", measures=c("Observed",
   ggtitle("Richness plot") +
   theme_classic(base_size = 16)
 dev.off()
+```
 
 
-
-# Beta-diversity: Ordination plots
+## Diversite Beta (ordination): 3 mesures differentes
+```
 #Fix for one condition experiments
 sample_data(psRar)[ , 2] <- sample_data(psRar)[ ,1]
 destfile=sprintf("%s/ordination.pdf",graphs_path)
@@ -337,4 +339,4 @@ ggplot(df, aes(df[,1], df[,2], color = Conditions)) +
   geom_text(aes(label=row.names(df)),hjust=0, vjust=0, size = 3, color = 'grey') +
   theme_classic(base_size = 16)
 dev.off()
-
+```
