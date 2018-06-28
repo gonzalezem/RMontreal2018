@@ -10,17 +10,17 @@
 
 <title>DADA2 Installation</title>
 
-<script src="DADA2%20Installation_files/jquery.js"></script>
+<script src="jquery.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="DADA2%20Installation_files/flatly.css" rel="stylesheet">
-<script src="DADA2%20Installation_files/bootstrap.js"></script>
-<script src="DADA2%20Installation_files/html5shiv.js"></script>
-<script src="DADA2%20Installation_files/respond.js"></script>
-<script src="DADA2%20Installation_files/tabsets.js"></script>
-<link href="DADA2%20Installation_files/textmate.css" rel="stylesheet">
-<script src="DADA2%20Installation_files/highlight.js"></script>
-<link href="DADA2%20Installation_files/font-awesome.css" rel="stylesheet">
-<link href="DADA2%20Installation_files/ionicons.css" rel="stylesheet">
+<link href="flatly.css" rel="stylesheet">
+<script src="bootstrap.js"></script>
+<script src="html5shiv.js"></script>
+<script src="respond.js"></script>
+<script src="tabsets.js"></script>
+<link href="textmate.css" rel="stylesheet">
+<script src="highlight.js"></script>
+<link href="font-awesome.css" rel="stylesheet">
+<link href="ionicons.css" rel="stylesheet">
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
@@ -68,7 +68,7 @@ h6 {
 </style>
 
 
-<script type="text/javascript" src="DADA2%20Installation_files/MathJax.js"></script><style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+<script type="text/javascript" src="MathJax.js"></script><style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
 .MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
 .MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
 .MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
@@ -188,6 +188,70 @@ button.code-folding-btn:focus {
   outline: none;
 }
 </style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+
+.section h2 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h3 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h4 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h5 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h6 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
 
 <hr>
 <div id="install-binaries-from-bioconductor" class="section level2">
