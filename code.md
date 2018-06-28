@@ -183,7 +183,7 @@ hist(nchar(getSequences(seqtab)),
 dev.off()
  ```
 
-# ENLEVER LES CHIMERES
+## ENLEVER LES CHIMERES
  ```
 #MAC/LINUX
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
@@ -198,7 +198,7 @@ cat("\nFraction of chimeras:", (1-sum(seqtab.nochim)/sum(seqtab))*100,"% of the 
 ```
 
 
-# DECOMPTE FINAL DES SEQUENCES
+## DECOMPTE FINAL DES SEQUENCES
   - Creer un dossier sera creee le tableau de decompte des sequences
 ```
 Summary_path <- file.path(output_directory, "Summary")
