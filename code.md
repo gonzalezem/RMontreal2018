@@ -1,3 +1,4 @@
+## INTRODUCTION
 Charger les librairies R utiliseés dans ce workshop
 ```
 library(dada2)
@@ -21,6 +22,7 @@ designFile_path = sprintf("%s\\Metadata/design.tsv",output_directory)
 ```
 
 
+## CHARGEMENT DES SEQUENCES
 Détecter les fichiers contenant les séquences ADN
 ```
 readFiles <- list.files(rawReadsFolder, pattern = "_R[12].fastq$", full.names = TRUE, recursive = TRUE)
@@ -39,7 +41,7 @@ length(fnFs)
 length(fnRs)
 ```
 
-## Profils de qualité
+## PROFILS DE QUALITE
 Examiner les profils de qualité de chacune des séquences _Forward_
 ```
 dir.create(file.path(output_directory, subDir), showWarnings=FALSE)
@@ -73,7 +75,7 @@ for (i in fnRs) {
 
 
 
-## Filtrer les séquences de mauvaise qualité
+## FILTRAGE DES SEQUENCES DE MAUVAISE QUALITE
   - Créer un dossier ou iront les sequences filtrees
   ```
 filt_path <- file.path(output_directory, "Filtered_reads")
@@ -101,22 +103,22 @@ out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs,
                      maxN=0, compress=FALSE, multithread=FALSE) 
 ```
 
-## Machine Learning: auto-correction des sequences d'apresun modele parametrique
-1. Creer un fichier pour le graphique genere ci-dessous
+## MACHINE LEARNING: auto-correction des sequences d'apres un modele parametrique
+  - Creer un fichier pour le graphique genere ci-dessous
 ```
 errorLearning_path <- file.path(output_directory, "Error_Rate_Learning")
 if(!file_test("-d", errorLearning_path)) dir.create(errorLearning_path)
 ```
-2. Lancer le modele statistique
+  - Lancer le modele parametrique
 ```
-#### MAC:
+MAC:
 errF <- learnErrors(filtFs, multithread = TRUE)
 errR <- learnErrors(filtRs, multithread = TRUE)
 WINDOWS:
 errF <- learnErrors(filtFs, multithread = FALSE)
 errR <- learnErrors(filtRs, multithread = FALSE)
 ```
-3. Generer des graphiques de correction de sequence pour les sequence _Forward_ et _Reverse_
+  - Generer des graphiques de correction de sequence pour les sequence _Forward_ et _Reverse_
 ```
 pdf(file=sprintf("%s/ErrorLearning_ForwardReads.pdf",errorLearning_path), width=10, height=7)
 print(plotErrors(errF, nominalQ=TRUE))
@@ -127,30 +129,24 @@ dev.off()
 ```
 
 
-cat("\n########################### DEREPLICATION #################################\n")
 
-start_time <- Sys.time()
-cat("\nStarting dereplication  process")
+## DEREPLICATION
+La dereplication va grouper les sequences identiques pour allerger la charge de calcul
+```
 derepFs <- derepFastq(filtFs, verbose=TRUE)
 derepRs <- derepFastq(filtRs, verbose=TRUE)
-# Name the derep-class objects by the sample names
+```
+Donner le nom des echantillons aux groupes de sequences derepliquees
+```
 names(derepFs) <- sample.names
 names(derepRs) <- sample.names
+```
 
 
 
-
-# DEREPLICATION 
-#Combine all identical sequencing reads into into “unique sequences”
-derepFs <- derepFastq(filtFs, verbose=TRUE)
-derepRs <- derepFastq(filtRs, verbose=TRUE)
-# Name the dereplicated objects by the sample names
-names(derepFs) <- sample.names
-names(derepRs) <- sample.names
-
-
-# SAMPLE INFERENCE
-#Apply the core sequence-variant inference algorithm to the dereplicated data
+# INFERENCE DES ECHANTILLONS
+Utiliser les resultat du modele parametrique precedent pour creer des sequences modifiees dans les echantillons  
+```
 #MAC/LINUX
 dadaFs <- dada(derepFs, err=errF, multithread=TRUE, pool=FALSE)
 dadaRs <- dada(derepRs, err=errR, multithread=TRUE, pool=FALSE)
@@ -158,16 +154,24 @@ dadaRs <- dada(derepRs, err=errR, multithread=TRUE, pool=FALSE)
 #WINDOWS
 dadaFs <- dada(derepFs, err=errF, multithread=FALSE, pool=FALSE)
 dadaRs <- dada(derepRs, err=errR, multithread=FALSE, pool=FALSE)
+```
+Regarder combien de sequences ont ete creees dans chacun des echantillons
+```
 dadaFs[[1]]
 dadaRs[[1]]
+```
 
-
-# OVERLAP PAIRED-END READS TO GETR THE AMPLICON
-#Create amplicons
+## ASSEMBLER LES SEQUENCES _FORWARD_ ET _REVERSE_ POUR OBTENIR LES AMPLICONS
+  - Creer les amplicons
+ ```
 amplicons <- mergePairs(dadaFs, derepFs, dadaRs, derepRs, minOverlap=20, verbose=TRUE)
-#2. Constructing sequence table")
+ ```
+  -  Contruire un tableau avec  les sequences des amplicons
+ ```
 seqtab <- makeSequenceTable(amplicons)
-#3 Create amplicon length histogram
+ ```
+  - Creer un histogram representant les differentes longueurs des amplicons
+ ```
 sequenceInference_path <- file.path(output_directory, "sequenceInference")
 if(!file_test("-d", sequenceInference_path)) dir.create(sequenceInference_path)
 pdf(file=sprintf("%s/Sequence_inference_histogram.pdf",sequenceInference_path), width=10, height=7)
@@ -177,81 +181,100 @@ hist(nchar(getSequences(seqtab)),
      border="black", col="gold",
      breaks=dim(seqtab)[-1])
 dev.off()
+ ```
 
-# REMOVE TECHNICAL CHIMERAS
+# ENLEVER LES CHIMERES
+ ```
 #MAC/LINUX
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
 
 #WINDOWS
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=FALSE, verbose=TRUE)
 
-
+```
+Afficher le pourcentage de sequences detectees comme chimeres
+```
 cat("\nFraction of chimeras:", (1-sum(seqtab.nochim)/sum(seqtab))*100,"% of the total sequence reads.\n")
+```
 
 
-write.table(seqtab.nochim, file =sprintf("%s/seqtab.nochim.txt",sequenceInference_path), sep = "\t", quote = FALSE)
-
-
-# SUMMARY TABLE #################################\n")
-#1. Create folder for the table
+# DECOMPTE FINAL DES SEQUENCES
+- Creer un dossier sera creee le tableau de decompte des sequences
+```
 Summary_path <- file.path(output_directory, "Summary")
 if(!file_test("-d", Summary_path)) dir.create(Summary_path)
+```
+  - Rassembler les statistiques de chacune des etapes
+  ```
 #Gather stats from the different steps
 getN <- function(x) sum(getUniques(x))
 track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(amplicons, getN), rowSums(seqtab.nochim))
 # If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
 colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
 rownames(track) <- sample.names
-#output the table
+```
+  - Creer le tableau de resultats
+  ```
 write.table(track ,file =sprintf("%s/SummaryTable.tsv",Summary_path), sep = "\t", quote = FALSE)
+```
 
-
-# TAXONOMY ASSIGNMENT
+# ASSIGNATION DE LA TAXONOMIE
+```
 taxa <- assignTaxonomy(seqtab.nochim, trainset_path)
+```
 
-
-# CREATE MAIN OUTPUT: AMPLICON COUNT TABLE AND TAXONOMY TABLE
-#1. Create a folder for these files
+# TABLEAU DE COMPTE DES AMPLICONS ET TABLEAU D'IDENTIFICATION TAXONOMIQUE
+- Creer un dossier seront crees ces fichier
+```
 dada2outputFiles_path <- file.path(output_directory, "outputFilesDada2")
 if(!file_test("-d", dada2outputFiles_path)) dir.create(dada2outputFiles_path)
-#2 output amplicon count table
+```
+  - Tableau de compte des amplicons
+  ```
 write.table(t(seqtab.nochim), file =sprintf("%s/otu_table.txt",dada2outputFiles_path), sep = "\t", quote = FALSE)
-#3 output taxonomy table
+```
+- Tableau d'identification taxonomique
+```
 write.table(taxa ,file =sprintf("%s/tax_table.txt",dada2outputFiles_path), sep = "\t", quote = FALSE)
+```
 
 
 
-
-############################# DATA EXPLORATION   ##########################################
-library(phyloseq)
-
-
-# SOME GRAPHS
-#1. create a folder for graphics
+## EXPLORATION DES DONNEES AVEC PHYLOSEQ
+  - Creer un dossier pour les graphiques
+  ```
 graphs_path <- file.path(output_directory, "graphics")
 if(!file_test("-d", graphs_path)) dir.create(graphs_path)
-#2. Load dada2 output into phyloseq by merging the 2 output and the design file into a same object
-#  a. Load the design file as a table
+```
+  - Integrer les donnees de Dada2 et du fichier design pour creer un object Phyloseq
+1. Design de l'experience
+```
 presampleTable = read.table(file =designFile_path, header=T, sep = "\t", row.names=1, com='', check.names=FALSE)
-#  b. convert it as a dataframe
 presampleTable<- as.data.frame(presampleTable)
-#  c. Create a sample_data-class object for phyloseq
 sampleTable = sample_data(presampleTable)
-#  d. Create a  otu_table-class object for phyloseq
+```
+2. Creer un object otu_table pour phyloseq
+```
 OtuTable = otu_table(seqtab.nochim, taxa_are_rows=FALSE)
-#  e. Create a taxonomyTable-class object for phyloseq
+```
+3. Creer un object tax_table pour phyloseq
+```
 TaxTable = tax_table(taxa)
-#3. Loading a phyloseq object
+```
+4. Creer l'objet phyloseq
+```
 ps <- phyloseq(OtuTable, TaxTable, sampleTable)
 ps
+```
 
-
-# Alpha diversity plots (species abundance)
-#Rarefaction: comparing several samples together
+# Diversite alpha (abondance des especes)
+  - Rarefaction: pour comparer plusieurs echantillons ensemble
+ ```
 psRar = rarefy_even_depth(ps, sample.size = min(sample_sums(ps)),verbose = TRUE)
+```
 
-
-#1. take the top 20 most abundant species
+- Extraire les 50 especes les plus abondantes
+```
 top50 <- names(sort(taxa_sums(psRar), decreasing=TRUE))[1:50]
 psRar.top50 <- transform_sample_counts(psRar, function(OTU) OTU/sum(OTU))
 psRar.top50 <- prune_taxa(top50, psRar.top50)
@@ -264,12 +287,12 @@ for(l in listTaxLevels) {
   print(q)
 }
 dev.off()
+```
 
 
 
 
-
-# Alpha diversity: Richness plots 
+# Diversite alpha (Richesse spécifique)
 destfile=sprintf("%s/richness.pdf",graphs_path)
 pdf(file=destfile, width=12, height=12)
 plot_richness(ps, x = "Conditions", color = "Conditions", measures=c("Observed", "Chao1", "Shannon", "Simpson"), nrow=1) + 
