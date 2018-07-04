@@ -14,11 +14,8 @@ rawReadsFolder = sprintf("%s/rawReads",output_directory)
 trainset_path = sprintf("%s/smaller_silva_train_set_128.fa.gz",output_directory)
 designFile_path = sprintf("%s/Metadata/design.tsv",output_directory)
 
-#WINDOWS
-output_directory = "YourPath\\dada2_Analysis"
-rawReadsFolder = sprintf("%s\\rawReads",output_directory)
-trainset_path = sprintf("%s\\smaller_silva_train_set_128.fa.gz",output_directory)
-designFile_path = sprintf("%s\\Metadata/design.tsv",output_directory)
+#WINDOWS: Remplacer \ par / dans l'adresse donnee par Windows
+
 ```
 
 
@@ -44,10 +41,9 @@ length(fnRs)
 ## PROFILS DE QUALITE
   - Examiner les profils de qualité de chacune des séquences _Forward_
 ```
-#MAC / LINUX
 subDir = sprintf("Quality_Profiles")
 dir.create(file.path(output_directory, subDir), showWarnings=FALSE)
-savefolder = paste(output_directory, "/qualityProfilesRawReads", sep="")
+savefolder = paste(output_directory, "/Quality_Profiles", sep="")
 cat("Forward reads\n")
 for (i in fnFs) {
   j<-sapply(strsplit(i, sprintf("%s/",rawReadsFolder)), `[`, -1)
@@ -60,20 +56,6 @@ for (i in fnFs) {
   }
 }
 
-#WINDOWS
-subDir = sprintf("Quality_Profiles")
-dir.create(file.path(output_directory, subDir), showWarnings=FALSE)
-savefolder = paste(output_directory, "\\qualityProfilesRawReads", sep="")
-cat("Forward reads\n")
-for (i in fnFs) {
-  j<-sapply(strsplit(i, sprintf("%s\\",rawReadsFolder)), `[`, -1)
-  destfile=sprintf("%s/qualityProfile_%s.pdf",savefolder,j)
-  if (!file.exists(destfile)) {
-    cat(".")
-    pdf(file=destfile, width=10, height=7)
-    print(plotQualityProfile(i))
-    dev.off()
-  }
 
 ```
   - Meme chose pour les séquences _Reverse_
@@ -128,7 +110,7 @@ if(!file_test("-d", errorLearning_path)) dir.create(errorLearning_path)
 ```
   - Lancer le modele parametrique
 ```
-MAC:
+MAC / LINUX:
 errF <- learnErrors(filtFs, multithread = TRUE)
 errR <- learnErrors(filtRs, multithread = TRUE)
 WINDOWS:
