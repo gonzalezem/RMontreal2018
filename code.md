@@ -46,7 +46,7 @@ dir.create(file.path(output_directory, subDir), showWarnings=FALSE)
 savefolder = paste(output_directory, "/Quality_Profiles", sep="")
 cat("Forward reads\n")
 for (i in fnFs) {
-  j<-sapply(strsplit(i, sprintf("%s/",rawReadsFolder)), `[`, -1)
+  j<-sapply(strsplit(i, sprintf("%s/",rawReadsFolder)), function(x) x[-1])
   destfile=sprintf("%s/qualityProfile_%s.pdf",savefolder,j)
   if (!file.exists(destfile)) {
     cat(".")
@@ -61,7 +61,7 @@ for (i in fnFs) {
   - Meme chose pour les séquences _Reverse_
 ```
 for (i in fnRs) {
-  j <- sapply(strsplit(i, sprintf("%s/",rawReadsFolder)), `[`, -1)
+  j <- sapply(strsplit(i, sprintf("%s/",rawReadsFolder)), function(x) x[-1])
   destfile=sprintf("%s/qualityProfile_%s.pdf",savefolder,j)
   if (!file.exists(destfile)) {
     cat(".")
