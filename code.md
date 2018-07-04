@@ -8,7 +8,7 @@ library(ggplot2)
 
 Changer _YourPath_ par l'emplacement du dossier dada2_Analysis sur votre ordinateur
 ```
-#MAC
+#MAC / LINUX
 output_directory = "YourPath/dada2_Analysis"
 rawReadsFolder = sprintf("%s/rawReads",output_directory)
 trainset_path = sprintf("%s/smaller_silva_train_set_128.fa.gz",output_directory)
@@ -44,9 +44,10 @@ length(fnRs)
 ## PROFILS DE QUALITE
   - Examiner les profils de qualité de chacune des séquences _Forward_
 ```
+#MAC / LINUX
+subDir = sprintf("Quality_Profiles")
 dir.create(file.path(output_directory, subDir), showWarnings=FALSE)
 savefolder = paste(output_directory, "/qualityProfilesRawReads", sep="")
-#2. create the quality profile
 cat("Forward reads\n")
 for (i in fnFs) {
   j<-sapply(strsplit(i, sprintf("%s/",rawReadsFolder)), `[`, -1)
@@ -58,6 +59,22 @@ for (i in fnFs) {
     dev.off()
   }
 }
+
+#WINDOWS
+subDir = sprintf("Quality_Profiles")
+dir.create(file.path(output_directory, subDir), showWarnings=FALSE)
+savefolder = paste(output_directory, "\\qualityProfilesRawReads", sep="")
+cat("Forward reads\n")
+for (i in fnFs) {
+  j<-sapply(strsplit(i, sprintf("%s\\",rawReadsFolder)), `[`, -1)
+  destfile=sprintf("%s/qualityProfile_%s.pdf",savefolder,j)
+  if (!file.exists(destfile)) {
+    cat(".")
+    pdf(file=destfile, width=10, height=7)
+    print(plotQualityProfile(i))
+    dev.off()
+  }
+
 ```
   - Meme chose pour les séquences _Reverse_
 ```
